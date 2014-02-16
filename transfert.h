@@ -1,0 +1,38 @@
+#ifndef TRANSFERT_H
+#define TRANSFERT_H
+#include "opencv2/imgproc/imgproc.hpp"
+#include "opencv2/highgui/highgui.hpp"
+#include "opencv2/features2d/features2d.hpp"
+/**
+ * RGB -> LMS
+ */
+float rgbToL(const uchar red, const uchar green, const uchar blue);
+float rgbToM(const uchar red, const uchar green, const uchar blue);
+float rgbToS(const uchar red, const uchar green, const uchar blue);
+
+/**
+ * LMS -> lambdaAlphaBetha
+ */
+float lmsToLambda(const float l, const float m, const float s);
+float lmsToAlpha(const float l, const float m, const float s);
+float lmsToBetha(const float l, const float m, const float s);
+
+/**
+ * Reverse
+ *
+ * lambdaAlphaBetha -> LMS
+ */
+float labToL(const float l, const float a, const float b);
+float labToM(const float l, const float a, const float b);
+float labToS(const float l, const float a, const float b);
+
+/**
+ * LMS -> RGB
+ */
+float lmsToR(const float l, const float m, const float s);
+float lmsToG(const float l, const float m, const float s);
+float lmsToB(const float l, const float m, const float s);
+
+void SwitchColor(Mat& oSrc, Mat& oClr, Mat& oDst)
+#endif
+
