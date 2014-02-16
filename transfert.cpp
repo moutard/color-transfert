@@ -163,35 +163,3 @@ void SwitchColor(Mat& oSrc, Mat& oClr, Mat& oDst)
       }
     }
 };
-
-void test(Mat& oSrc, Mat& oDst) {
-      MatIterator_<Vec3b> it, end;
-      MatIterator_<Vec3b> itlab, endlab;
-
-      // oSrc -> oLMS
-      for( it = oSrc.begin<Vec3b>(), end = oSrc.end<Vec3b>(); it != end; ++it)
-      {
-          uchar r = (*it)[0];
-          uchar g = (*it)[1];
-          uchar b = (*it)[2];
-          float l = rgbToL(r, g, b );
-          float m = rgbToM(r, g, b );
-          float s = rgbToS(r, g, b );
-          float _r = lmsToR(l, m, s);
-          float _g = lmsToG(l, m, s);
-          float _b = lmsToB(l, m, s);
-          uchar __r = (uchar)_r;
-          uchar __g = (uchar)_g;
-          uchar __b = (uchar)_b;
-
-          if ( abs(__r - r) > 5 || abs(__g - g) > 5 || abs(__b - b) > 5) {
-            cout << "origi rgb: " << (int)r << " " << (int)g << " " << (int)b <<  endl;
-            cout << "inter lms: " << l << " " << m << " " << s <<  endl;
-            cout << "final rgb: " << _r << " " << _g << " " << _b <<  endl;
-            cout << "uchar rgb: " << (int)__r << " " << (int)__g << " " << (int)__b <<  endl;
-            cout << endl;
-          }
-      }
-
-
-}
