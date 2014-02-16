@@ -33,6 +33,8 @@ float lmsToR(const float l, const float m, const float s);
 float lmsToG(const float l, const float m, const float s);
 float lmsToB(const float l, const float m, const float s);
 
-void SwitchColor(Mat& oSrc, Mat& oClr, Mat& oDst)
+void SwitchColor(cv::Mat& oSrc, cv::Mat& oClr, cv::Mat& oDst);
+void compare(cv::Mat& oSrc, cv::Mat& oDst);
+void test(cv::Mat& oSrc, cv::Mat& oDst);
 #endif
 

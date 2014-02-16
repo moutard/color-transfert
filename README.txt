@@ -1,1 +1,1 @@
-cmake -DCMAKE_BUILD_TYPE=DEbug . -G "Unix MakeFiles"
+cmake -DCMAKE_BUILD_TYPE=DEbug . -G "Unix Makefiles"

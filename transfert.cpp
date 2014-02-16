@@ -23,21 +23,21 @@ float rgbToL(const uchar red, const uchar green, const uchar blue)
   float a11 = 0.3811f;
   float a12 = 0.5783f;
   float a13 = 0.0402f;
-  return a11 * red + a12 * green + a13 * blue;
+  return ((a11 * red) + (a12 * green) + (a13 * blue));
 };
 float rgbToM(const uchar red, const uchar green, const uchar blue)
 {
   float a21 = 0.1967f;
   float a22 = 0.7244f;
   float a23 = 0.0782f;
-  return a21 * red + a22 * green + a23 * blue;
+  return ((a21 * red) + (a22 * green) + (a23 * blue));
 };
 float rgbToS(const uchar red, const uchar green, const uchar blue)
 {
   float a31 = 0.0241f;
   float a32 = 0.1288f;
   float a33 = 0.8444f;
-  return a31 * red + a32 * green + a33 * blue;
+  return ((a31 * red) + (a32 * green) + (a33 * blue));
 };
 
 /**
@@ -92,23 +92,23 @@ float labToS(const float l, const float a, const float b)
 float lmsToR(const float l, const float m, const float s)
 {
   float a11 = 4.4679f;
-  float a12 = -3.5873f;
+  float a12 = 3.5873f;
   float a13 = 0.1193f;
-  return a11 * l + a12 * m + a13 * s;
+  return ((a11 * l) - (a12 * m) + (a13 * s));
 };
 float lmsToG(const float l, const float m, const float s)
 {
   float a21 = -1.2186f;
   float a22 = 2.3809f;
-  float a23 = -0.1624f;
-  return a21 * l + a22 * m + a23 * s;
+  float a23 = 0.1624f;
+  return ((a21 * l) + (a22 * m) - (a23 * s));
 };
 float lmsToB(const float l, const float m, const float s)
 {
   float a31 = 0.0497f;
-  float a32 = -0.2439f;
-  float a33 =  1.2045f;
-  return a31 * l + a32 * m + a33 * s;
+  float a32 = 0.2439f;
+  float a33 = 1.2045f;
+  return ((a31 * l) - (a32 * m) + (a33 * s));
 };
 
 
@@ -121,20 +121,23 @@ void SwitchColor(Mat& oSrc, Mat& oClr, Mat& oDst)
     if (channels == 3)
     {
       // Create a temp matrix.
-      Mat oLMS = cvCreateMat(oSrc.rows, oSrc.cols, CV_32FC3);
-      MatIterator_<Vec3b> it, end;
-      MatIterator_<Vec3b> itlms, endlms;
+
+      Mat oLMS = Mat::zeros(oSrc.rows, oSrc.cols, CV_64FC3);
+      MatIterator_<Vec3b> itSrc, endSrc;
+      MatIterator_<Vec3b> itDst, endDst;
+      MatIterator_<Vec3f> itlms, endlms;
 
       // oSrc -> oLMS
-      itlms = oLMS.begin<Vec3b>();
-      for( it = oSrc.begin<Vec3b>(), end = oSrc.end<Vec3b>(); it != end; ++it)
+      itlms = oLMS.begin<Vec3f>();
+      for( itSrc = oSrc.begin<Vec3b>(), endSrc = oSrc.end<Vec3b>(); itSrc != endSrc; ++itSrc)
       {
-          uchar r = (*it)[0];
-          uchar g = (*it)[1];
-          uchar b = (*it)[2];
-          (*itlms)[0] = ( rgbToL(r, g, b ));
-          (*itlms)[1] = ( rgbToM(r, g, b ));
-          (*itlms)[2] = ( rgbToS(r, g, b ));
+          uchar r = (*itSrc)[0];
+          uchar g = (*itSrc)[1];
+          uchar b = (*itSrc)[2];
+
+          (*itlms)[0] = rgbToL(r, g, b);
+          (*itlms)[1] = rgbToM(r, g, b);
+          (*itlms)[2] = rgbToS(r, g, b);
           ++itlms;
       }
 /*
@@ -161,16 +164,51 @@ void SwitchColor(Mat& oSrc, Mat& oClr, Mat& oDst)
           (*itlms)[2] = ( labToS(l, a, b));
       }
 */
-      itlms = oLMS.begin<Vec3b>();
-      for( it = oDst.begin<Vec3b>(), end = oDst.end<Vec3b>(); it != end; ++it)
+      itDst = oDst.begin<Vec3b>();
+      itSrc = oDst.begin<Vec3b>();
+      for( itlms = oLMS.begin<Vec3f>(), endlms = oLMS.end<Vec3f>(); itlms != endlms; ++itlms)
       {
           float l = (*itlms)[0];
           float m = (*itlms)[1];
           float s = (*itlms)[2];
-          (*it)[0] = (uchar)lmsToR(l, m, s);
-          (*it)[1] = (uchar)lmsToG(l, m, s);
-          (*it)[2] = (uchar)lmsToB(l, m, s);
-          ++itlms;
+          (*itDst)[0] = (uchar)lmsToR(l, m, s);
+          (*itDst)[1] = (uchar)lmsToG(l, m, s);
+          (*itDst)[2] = (uchar)lmsToB(l, m, s);
+
+          ++itDst;
+          ++itSrc;
       }
     }
 };
+
+void test(Mat& oSrc, Mat& oDst) {
+      MatIterator_<Vec3b> it, end;
+      MatIterator_<Vec3b> itlms, endlms;
+
+      // oSrc -> oLMS
+      for( it = oSrc.begin<Vec3b>(), end = oSrc.end<Vec3b>(); it != end; ++it)
+      {
+          uchar r = (*it)[0];
+          uchar g = (*it)[1];
+          uchar b = (*it)[2];
+          float l = rgbToL(r, g, b );
+          float m = rgbToM(r, g, b );
+          float s = rgbToS(r, g, b );
+          float _r = lmsToR(l, m, s);
+          float _g = lmsToG(l, m, s);
+          float _b = lmsToB(l, m, s);
+          uchar __r = (uchar)_r;
+          uchar __g = (uchar)_g;
+          uchar __b = (uchar)_b;
+
+          if ( abs(__r - r) > 5 || abs(__g - g) > 5 || abs(__b - b) > 5) {
+            cout << "origi rgb: " << (int)r << " " << (int)g << " " << (int)b <<  endl;
+            cout << "inter lms: " << l << " " << m << " " << s <<  endl;
+            cout << "final rgb: " << _r << " " << _g << " " << _b <<  endl;
+            cout << "uchar rgb: " << (int)__r << " " << (int)__g << " " << (int)__b <<  endl;
+            cout << endl;
+          }
+      }
+
+
+}
