@@ -18,21 +18,21 @@ using namespace cv;
 /**
  * RGB -> LMS
  */
-float rgbToL(const uchar red, const uchar green, const uchar blue)
+inline float rgbToL(const uchar red, const uchar green, const uchar blue)
 {
   float a11 = 0.3811f;
   float a12 = 0.5783f;
   float a13 = 0.0402f;
   return ((a11 * red) + (a12 * green) + (a13 * blue));
 };
-float rgbToM(const uchar red, const uchar green, const uchar blue)
+inline float rgbToM(const uchar red, const uchar green, const uchar blue)
 {
   float a21 = 0.1967f;
   float a22 = 0.7244f;
   float a23 = 0.0782f;
   return ((a21 * red) + (a22 * green) + (a23 * blue));
 };
-float rgbToS(const uchar red, const uchar green, const uchar blue)
+inline float rgbToS(const uchar red, const uchar green, const uchar blue)
 {
   float a31 = 0.0241f;
   float a32 = 0.1288f;
@@ -43,17 +43,17 @@ float rgbToS(const uchar red, const uchar green, const uchar blue)
 /**
  * LMS -> lambdaAlphaBetha
  */
-float lmsToLambda(const float l, const float m, const float s)
+inline float lmsToLambda(const float l, const float m, const float s)
 {
   float coeff = 0.5773f; // 1/sqrt(3)
   return coeff * (l + m + s);
 };
-float lmsToAlpha(const float l, const float m, const float s)
+inline float lmsToAlpha(const float l, const float m, const float s)
 {
   float coeff = 0.4082; // 1/sqrt(6)
   return coeff * (l + m - 2*s);
 };
-float lmsToBetha(const float l, const float m, const float s)
+inline float lmsToBetha(const float l, const float m, const float s)
 {
   float coeff = 0.7071; // 1/sqrt(2)
   return coeff * (l - m);
@@ -64,21 +64,21 @@ float lmsToBetha(const float l, const float m, const float s)
  *
  * lambdaAlphaBetha -> LMS
  */
-float labToL(const float l, const float a, const float b)
+inline float labToL(const float l, const float a, const float b)
 {
   float coeff1 = 0.5773f; // sqrt(3)/3
   float coeff2 = 0.4082f; // sqrt(6)/6
   float coeff3 = 0.7071f; // sqrt(2)/2
   return (coeff1*l + coeff2*a + coeff3*b);
 };
-float labToM(const float l, const float a, const float b)
+inline float labToM(const float l, const float a, const float b)
 {
   float coeff1 = 0.5773f; // sqrt(3)/3
   float coeff2 = 0.4082f; // sqrt(6)/6
   float coeff3 = 0.7071f; // sqrt(2)/2
   return (coeff1*l + coeff2*a - coeff3*b);
 };
-float labToS(const float l, const float a, const float b)
+inline float labToS(const float l, const float a, const float b)
 {
   float coeff1 = 0.5773f; // sqrt(3)/3
   float coeff2 = 0.4082f; // sqrt(6)/6
@@ -89,21 +89,21 @@ float labToS(const float l, const float a, const float b)
 /**
  * LMS -> RGB
  */
-float lmsToR(const float l, const float m, const float s)
+inline float lmsToR(const float l, const float m, const float s)
 {
   float a11 = 4.4679f;
   float a12 = 3.5873f;
   float a13 = 0.1193f;
   return ((a11 * l) - (a12 * m) + (a13 * s));
 };
-float lmsToG(const float l, const float m, const float s)
+inline float lmsToG(const float l, const float m, const float s)
 {
   float a21 = -1.2186f;
   float a22 = 2.3809f;
   float a23 = 0.1624f;
   return ((a21 * l) + (a22 * m) - (a23 * s));
 };
-float lmsToB(const float l, const float m, const float s)
+inline float lmsToB(const float l, const float m, const float s)
 {
   float a31 = 0.0497f;
   float a32 = 0.2439f;
@@ -143,7 +143,6 @@ void SwitchColor(Mat& oSrc, Mat& oClr, Mat& oDst)
           (*itlab)[2] = lmsToBetha( L, M, S);
           ++itlab;
       }
-
 
       // Reverse
       // LAB -> LMS -> oDst
