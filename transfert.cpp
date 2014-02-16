@@ -122,68 +122,51 @@ void SwitchColor(Mat& oSrc, Mat& oClr, Mat& oDst)
     {
       // Create a temp matrix.
 
-      Mat oLMS = Mat::zeros(oSrc.rows, oSrc.cols, CV_64FC3);
+      Mat oLAB = Mat::zeros(oSrc.rows, oSrc.cols, CV_32FC3);
       MatIterator_<Vec3b> itSrc, endSrc;
       MatIterator_<Vec3b> itDst, endDst;
-      MatIterator_<Vec3f> itlms, endlms;
+      MatIterator_<Vec3f> itlab, endlab;
 
-      // oSrc -> oLMS
-      itlms = oLMS.begin<Vec3f>();
+      // oSrc -> LMS -> LAB
+      itlab = oLAB.begin<Vec3f>();
       for( itSrc = oSrc.begin<Vec3b>(), endSrc = oSrc.end<Vec3b>(); itSrc != endSrc; ++itSrc)
       {
           uchar r = (*itSrc)[0];
           uchar g = (*itSrc)[1];
           uchar b = (*itSrc)[2];
 
-          (*itlms)[0] = rgbToL(r, g, b);
-          (*itlms)[1] = rgbToM(r, g, b);
-          (*itlms)[2] = rgbToS(r, g, b);
-          ++itlms;
+          float L = log( rgbToL(r, g, b) );
+          float M = log( rgbToM(r, g, b) );
+          float S = log( rgbToS(r, g, b) );
+          (*itlab)[0] = lmsToLambda(L, M, S);
+          (*itlab)[1] = lmsToAlpha( L, M, S);
+          (*itlab)[2] = lmsToBetha( L, M, S);
+          ++itlab;
       }
-/*
-      for (itlms = oLMS.begin<Vec3b>(), endlms = oLMS.end<Vec3b>(); itlms != endlms; ++itlms)
-      {
-          float l = (*itlms)[0];
-          float m = (*itlms)[1];
-          float s = (*itlms)[2];
 
-          (*itlms)[0] = lmsToLambda(l, m, s);
-          (*itlms)[1] = lmsToAlpha(l, m, s);
-          (*itlms)[2] = lmsToBetha(l, m, s);
-      }
 
       // Reverse
-      // oLMS -> oDst
-      for (itlms = oLMS.begin<Vec3b>(), endlms = oLMS.end<Vec3b>(); itlms != endlms; ++itlms)
-      {
-          float l = (*itlms)[0];
-          float a = (*itlms)[1];
-          float b = (*itlms)[2];
-          (*itlms)[0] = ( labToL(l, a, b));
-          (*itlms)[1] = ( labToM(l, a, b));
-          (*itlms)[2] = ( labToS(l, a, b));
-      }
-*/
+      // LAB -> LMS -> oDst
       itDst = oDst.begin<Vec3b>();
-      itSrc = oDst.begin<Vec3b>();
-      for( itlms = oLMS.begin<Vec3f>(), endlms = oLMS.end<Vec3f>(); itlms != endlms; ++itlms)
+      for (itlab = oLAB.begin<Vec3f>(), endlab = oLAB.end<Vec3f>(); itlab != endlab; ++itlab)
       {
-          float l = (*itlms)[0];
-          float m = (*itlms)[1];
-          float s = (*itlms)[2];
-          (*itDst)[0] = (uchar)lmsToR(l, m, s);
-          (*itDst)[1] = (uchar)lmsToG(l, m, s);
-          (*itDst)[2] = (uchar)lmsToB(l, m, s);
-
+          float l = (*itlab)[0];
+          float a = (*itlab)[1];
+          float b = (*itlab)[2];
+          float L = exp( labToL(l, a, b) );
+          float M = exp( labToM(l, a, b) );
+          float S = exp( labToS(l, a, b) );
+          (*itDst)[0] = (uchar)lmsToR(L, M, S);
+          (*itDst)[1] = (uchar)lmsToG(L, M, S);
+          (*itDst)[2] = (uchar)lmsToB(L, M, S);
           ++itDst;
-          ++itSrc;
       }
     }
 };
 
 void test(Mat& oSrc, Mat& oDst) {
       MatIterator_<Vec3b> it, end;
-      MatIterator_<Vec3b> itlms, endlms;
+      MatIterator_<Vec3b> itlab, endlab;
 
       // oSrc -> oLMS
       for( it = oSrc.begin<Vec3b>(), end = oSrc.end<Vec3b>(); it != end; ++it)
