@@ -111,7 +111,11 @@ inline float lmsToB(const float l, const float m, const float s)
   return ((a31 * l) - (a32 * m) + (a33 * s));
 };
 
-
+/**
+ * oSrc : image you want to change.
+ * oClr: image used to extract color.
+ * oDst: an image that will contains the result.
+ */
 void SwitchColor(Mat& oSrc, Mat& oClr, Mat& oDst)
 {
     // accept only char type matrices
@@ -120,44 +124,81 @@ void SwitchColor(Mat& oSrc, Mat& oClr, Mat& oDst)
     const int channels = oSrc.channels();
     if (channels == 3)
     {
-      // Create a temp matrix.
+      // Create a LAB matrix.
+      Mat oSrcLAB = Mat::zeros(oSrc.rows, oSrc.cols, CV_64FC3);
+      Mat oClrLAB = Mat::zeros(oSrc.rows, oSrc.cols, CV_64FC3);
 
-      Mat oLAB = Mat::zeros(oSrc.rows, oSrc.cols, CV_32FC3);
-      MatIterator_<Vec3b> itSrc, endSrc;
+      // Vec3b -> 3 channels of uchar.
+      MatIterator_<Vec3b> itSrc, endSrc, itClr, endClr;
       MatIterator_<Vec3b> itDst, endDst;
-      MatIterator_<Vec3f> itlab, endlab;
+      // Vec3d -> 3 channels of float.
+      MatIterator_<Vec3d> itlab, endlab;
+      MatIterator_<Vec3d> itClrlab, endClrlab;
 
       // oSrc -> LMS -> LAB
-      itlab = oLAB.begin<Vec3f>();
+      itlab = oSrcLAB.begin<Vec3d>();
       for( itSrc = oSrc.begin<Vec3b>(), endSrc = oSrc.end<Vec3b>(); itSrc != endSrc; ++itSrc)
       {
-          uchar r = (*itSrc)[0];
+          // Stored in BGR not RGB !
+          uchar b = (*itSrc)[0];
           uchar g = (*itSrc)[1];
-          uchar b = (*itSrc)[2];
-
-          float L = log( rgbToL(r, g, b) );
-          float M = log( rgbToM(r, g, b) );
-          float S = log( rgbToS(r, g, b) );
+          uchar r = (*itSrc)[2];
+          float L = log( 1 + rgbToL(r, g, b) );
+          float M = log( 1 + rgbToM(r, g, b) );
+          float S = log( 1 + rgbToS(r, g, b) );
           (*itlab)[0] = lmsToLambda(L, M, S);
           (*itlab)[1] = lmsToAlpha( L, M, S);
           (*itlab)[2] = lmsToBetha( L, M, S);
           ++itlab;
       }
 
+      // oClr -> LMS -> LAB
+      itClrlab = oClrLAB.begin<Vec3d>();
+      for( itClr = oClr.begin<Vec3b>(), endClr = oClr.end<Vec3b>(); itClr != endClr; ++itClr)
+      {
+          uchar b = (*itClr)[0];
+          uchar g = (*itClr)[1];
+          uchar r = (*itClr)[2];
+
+          float L = log( 1 + rgbToL(r, g, b) );
+          float M = log( 1 + rgbToM(r, g, b) );
+          float S = log( 1 + rgbToS(r, g, b) );
+          (*itClrlab)[0] = lmsToLambda(L, M, S);
+          (*itClrlab)[1] = lmsToAlpha( L, M, S);
+          (*itClrlab)[2] = lmsToBetha( L, M, S);
+          ++itClrlab;
+      }
+      // Compute average and standard derivation for oSrc and oClr
+      Scalar meanSrc, stdDevSrc, meanClr, stdDevClr;
+      meanStdDev(oSrcLAB, meanSrc, stdDevSrc);
+      cout << meanSrc[0] << " " << meanSrc[1] << " " << meanSrc[2] << endl;
+
+      meanStdDev(oClrLAB, meanClr, stdDevClr);
+      cout << meanClr[0] << " " << meanClr[1] << " " << meanClr[2] << endl;
+      float x = (stdDevClr[0] / stdDevSrc[0]);
+      float y = (stdDevClr[1] / stdDevSrc[1]);
+      float z = (stdDevClr[2] / stdDevSrc[2]);
+
+      for (itlab = oSrcLAB.begin<Vec3d>(), endlab = oSrcLAB.end<Vec3d>(); itlab != endlab; ++itlab)
+      {
+        (*itlab)[0] = x*((*itlab)[0] - meanSrc[0]) + meanClr[0];
+        (*itlab)[1] = y*((*itlab)[1] - meanSrc[1]) + meanClr[1];
+        (*itlab)[2] = z*((*itlab)[2] - meanSrc[2]) + meanClr[2];
+      }
       // Reverse
       // LAB -> LMS -> oDst
       itDst = oDst.begin<Vec3b>();
-      for (itlab = oLAB.begin<Vec3f>(), endlab = oLAB.end<Vec3f>(); itlab != endlab; ++itlab)
+      for (itlab = oSrcLAB.begin<Vec3d>(), endlab = oSrcLAB.end<Vec3d>(); itlab != endlab; ++itlab)
       {
           float l = (*itlab)[0];
           float a = (*itlab)[1];
           float b = (*itlab)[2];
-          float L = exp( labToL(l, a, b) );
-          float M = exp( labToM(l, a, b) );
-          float S = exp( labToS(l, a, b) );
-          (*itDst)[0] = (uchar)lmsToR(L, M, S);
+          float L = exp( labToL(l, a, b) ) - 1;
+          float M = exp( labToM(l, a, b) ) - 1;
+          float S = exp( labToS(l, a, b) ) - 1;
+          (*itDst)[2] = (uchar)lmsToR(L, M, S);
           (*itDst)[1] = (uchar)lmsToG(L, M, S);
-          (*itDst)[2] = (uchar)lmsToB(L, M, S);
+          (*itDst)[0] = (uchar)lmsToB(L, M, S);
           ++itDst;
       }
     }

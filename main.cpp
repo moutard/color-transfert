@@ -18,7 +18,6 @@ int main( void )
   Mat dst = src.clone();
   /// Load the image we will used to extract colors.
   Mat clr = imread("lena.jpg", 1);
-
   SwitchColor(src, clr, dst);
 
   /// Display the source image in the window.
