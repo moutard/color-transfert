@@ -120,8 +120,12 @@ void SwitchColor(Mat& oSrc, Mat& oClr, Mat& oDst)
 {
     // accept only char type matrices
     CV_Assert(oSrc.depth() != sizeof(uchar));
+    Mat oSrcLabels, oClrLabels;
+    const int K = 3;
+    mykmean(oSrc, oSrcLabels, K);
+    mykmean(oClr, oClrLabels, K);
 
-    const int channels = oSrc.channels();
+     const int channels = oSrc.channels();
     if (channels == 3)
     {
       // Create a LAB matrix.
@@ -137,7 +141,7 @@ void SwitchColor(Mat& oSrc, Mat& oClr, Mat& oDst)
 
       // oSrc -> LMS -> LAB
       itlab = oSrcLAB.begin<Vec3d>();
-      for( itSrc = oSrc.begin<Vec3b>(), endSrc = oSrc.end<Vec3b>(); itSrc != endSrc; ++itSrc)
+      for (itSrc = oSrc.begin<Vec3b>(), endSrc = oSrc.end<Vec3b>(); itSrc != endSrc; ++itSrc)
       {
           // Stored in BGR not RGB !
           uchar b = (*itSrc)[0];
@@ -151,10 +155,9 @@ void SwitchColor(Mat& oSrc, Mat& oClr, Mat& oDst)
           (*itlab)[2] = lmsToBetha( L, M, S);
           ++itlab;
       }
-
       // oClr -> LMS -> LAB
       itClrlab = oClrLAB.begin<Vec3d>();
-      for( itClr = oClr.begin<Vec3b>(), endClr = oClr.end<Vec3b>(); itClr != endClr; ++itClr)
+      for ( itClr = oClr.begin<Vec3b>(), endClr = oClr.end<Vec3b>(); itClr != endClr; ++itClr)
       {
           uchar b = (*itClr)[0];
           uchar g = (*itClr)[1];
@@ -168,13 +171,41 @@ void SwitchColor(Mat& oSrc, Mat& oClr, Mat& oDst)
           (*itClrlab)[2] = lmsToBetha( L, M, S);
           ++itClrlab;
       }
+
+      // For the source: Compute the mean and standard deviation for each cluster.
+      vector<Scalar> clustersMeanSrc, clustersStdDevSrc;
+      clustersMeanSrc.reserve(K), clustersStdDevSrc.reserve(K);
+      for (unsigned int i = 0; i < K; i++) {
+        Mat maskClusterSrc = oSrcLabels.clone(); // clone constructor.
+        MatIterator_<Vec3b> it, end;
+        for (it = maskClusterSrc.begin<Vec3b>(); it != maskClusterSrc.end<Vec3b>(); ++it) {
+            (*it)[0] = ((*it)[0] == i) ? 1 : 0;
+        }
+        meanStdDev(oSrcLAB, clustersMeanSrc[i], clustersStdDevSrc[i], maskClusterSrc);
+      }
+
+      // For the color: Compute the mean and standard deviation for eah cluster.
+      vector<Scalar> clustersMeanClr, clustersStdDevClr;
+      clustersMeanClr.reserve(K), clustersStdDevClr.reserve(K);
+      for (unsigned int i = 0; i < K; i++) {
+        Mat maskClusterClr = oClrLabels.clone(); // clone constructor.
+        MatIterator_<Vec3b> it, end;
+        for (it = maskClusterClr.begin<Vec3b>(); it != maskClusterClr.end<Vec3b>(); ++it) {
+            (*it)[0] = ((*it)[0] == i) ? 1 : 0;
+        }
+        meanStdDev(oClrLAB, clustersMeanClr[i], clustersStdDevClr[i], maskClusterClr);
+      }
+
       // Compute average and standard derivation for oSrc and oClr
       Scalar meanSrc, stdDevSrc, meanClr, stdDevClr;
       meanStdDev(oSrcLAB, meanSrc, stdDevSrc);
-      cout << meanSrc[0] << " " << meanSrc[1] << " " << meanSrc[2] << endl;
+      cout << "Source mean LAB: " << meanSrc[0] << " " << meanSrc[1] << " " << meanSrc[2] << endl;
+      cout << "Source stdDev LAB: " << stdDevSrc[0] << " " << stdDevSrc[1] << " " << stdDevSrc[2] << endl;
 
       meanStdDev(oClrLAB, meanClr, stdDevClr);
-      cout << meanClr[0] << " " << meanClr[1] << " " << meanClr[2] << endl;
+      cout << "Color mean LAB: " << meanClr[0] << " " << meanClr[1] << " " << meanClr[2] << endl;
+      cout << "Color stdDev LAB: " << stdDevClr[0] << " " << stdDevClr[1] << " " << stdDevClr[2] << endl;
+
       float x = (stdDevClr[0] / stdDevSrc[0]);
       float y = (stdDevClr[1] / stdDevSrc[1]);
       float z = (stdDevClr[2] / stdDevSrc[2]);
@@ -202,4 +233,29 @@ void SwitchColor(Mat& oSrc, Mat& oClr, Mat& oDst)
           ++itDst;
       }
     }
+};
+
+int mykmean(Mat& img, Mat& _labels, const int k)
+{
+    std::vector<cv::Mat> imgRGB;
+    cv::split(img, imgRGB);
+    int n = img.rows * img.cols;
+    cv::Mat img3xN(n, 3, CV_8U);
+    for (int i = 0; i != 3; ++i)
+    {
+      imgRGB[i].reshape(1, n).copyTo(img3xN.col(i));
+    }
+    img3xN.convertTo(img3xN, CV_32F);
+    cv::kmeans(img3xN, k, _labels, cv::TermCriteria(), 10, cv::KMEANS_RANDOM_CENTERS);
+    _labels = _labels.reshape(0, img.rows);
+
+    return k;
+};
+
+int displayLabels(const Mat & _labels, int k)
+{
+  Mat imgLabels;
+  cv::convertScaleAbs(_labels, imgLabels, int(255/k));
+  cv::imshow("result", imgLabels);
+  waitKey(0);
 };

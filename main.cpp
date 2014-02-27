@@ -14,12 +14,11 @@ int main( void )
   namedWindow( window_name, WINDOW_AUTOSIZE );
 
   /// Load the source image
-  Mat src = imread( "fruits.jpg", 1 );
-  Mat dst = src.clone();
-  /// Load the image we will used to extract colors.
-  Mat clr = imread("lena.jpg", 1);
-  SwitchColor(src, clr, dst);
+  Mat src = imread( "leaves-orange.jpg", 1 );
+  Mat dst = Mat::zeros(src.rows, src.cols, CV_8UC3);
+  Mat clr = imread("leaves-green.jpg", 1);
 
+  SwitchColor(src, clr, dst);
   /// Display the source image in the window.
   imshow( window_name, dst );
 
