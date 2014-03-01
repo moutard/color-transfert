@@ -15,6 +15,16 @@
 using namespace std;
 using namespace cv;
 
+// Constant that reprents id of channels, easyer to read in my opinion.
+// Note that RGB is stored in the opposite order.
+// I could use an enum?
+enum channelsRGB {
+  BLUE, GREEN, RED
+};
+enum channelsLAB {
+  LAMBDA, ALPHA, BETHA
+};
+
 /**
  * RGB -> LMS
  */
@@ -124,13 +134,15 @@ void SwitchColor(Mat& oSrc, Mat& oClr, Mat& oDst)
     const int K = 3;
     mykmean(oSrc, oSrcLabels, K);
     mykmean(oClr, oClrLabels, K);
+    displayLabels(oSrcLabels, K);
+    displayLabels(oClrLabels, K);
 
-     const int channels = oSrc.channels();
+    const int channels = oSrc.channels();
     if (channels == 3)
     {
       // Create a LAB matrix.
       Mat oSrcLAB = Mat::zeros(oSrc.rows, oSrc.cols, CV_64FC3);
-      Mat oClrLAB = Mat::zeros(oSrc.rows, oSrc.cols, CV_64FC3);
+      Mat oClrLAB = Mat::zeros(oClr.rows, oClr.cols, CV_64FC3);
 
       // Vec3b -> 3 channels of uchar.
       MatIterator_<Vec3b> itSrc, endSrc, itClr, endClr;
@@ -144,67 +156,99 @@ void SwitchColor(Mat& oSrc, Mat& oClr, Mat& oDst)
       for (itSrc = oSrc.begin<Vec3b>(), endSrc = oSrc.end<Vec3b>(); itSrc != endSrc; ++itSrc)
       {
           // Stored in BGR not RGB !
-          uchar b = (*itSrc)[0];
-          uchar g = (*itSrc)[1];
-          uchar r = (*itSrc)[2];
+          uchar b = (*itSrc)[BLUE];
+          uchar g = (*itSrc)[GREEN];
+          uchar r = (*itSrc)[RED];
           float L = log( 1 + rgbToL(r, g, b) );
           float M = log( 1 + rgbToM(r, g, b) );
           float S = log( 1 + rgbToS(r, g, b) );
-          (*itlab)[0] = lmsToLambda(L, M, S);
-          (*itlab)[1] = lmsToAlpha( L, M, S);
-          (*itlab)[2] = lmsToBetha( L, M, S);
+          (*itlab)[LAMBDA] = lmsToLambda(L, M, S);
+          (*itlab)[ALPHA] = lmsToAlpha( L, M, S);
+          (*itlab)[BETHA] = lmsToBetha( L, M, S);
           ++itlab;
       }
-      // oClr -> LMS -> LAB
+      // oClr -> LMS -> LABinputMat.copyTo(outputMat, maskMat);
       itClrlab = oClrLAB.begin<Vec3d>();
       for ( itClr = oClr.begin<Vec3b>(), endClr = oClr.end<Vec3b>(); itClr != endClr; ++itClr)
       {
-          uchar b = (*itClr)[0];
-          uchar g = (*itClr)[1];
-          uchar r = (*itClr)[2];
+          uchar b = (*itClr)[BLUE];
+          uchar g = (*itClr)[GREEN];
+          uchar r = (*itClr)[RED];
 
           float L = log( 1 + rgbToL(r, g, b) );
           float M = log( 1 + rgbToM(r, g, b) );
           float S = log( 1 + rgbToS(r, g, b) );
-          (*itClrlab)[0] = lmsToLambda(L, M, S);
-          (*itClrlab)[1] = lmsToAlpha( L, M, S);
-          (*itClrlab)[2] = lmsToBetha( L, M, S);
+          (*itClrlab)[LAMBDA] = lmsToLambda(L, M, S);
+          (*itClrlab)[ALPHA] = lmsToAlpha( L, M, S);
+          (*itClrlab)[BETHA] = lmsToBetha( L, M, S);
           ++itClrlab;
       }
 
       // For the source: Compute the mean and standard deviation for each cluster.
-      vector<Scalar> clustersMeanSrc, clustersStdDevSrc;
-      clustersMeanSrc.reserve(K), clustersStdDevSrc.reserve(K);
-      for (unsigned int i = 0; i < K; i++) {
-        Mat maskClusterSrc = oSrcLabels.clone(); // clone constructor.
-        MatIterator_<Vec3b> it, end;
-        for (it = maskClusterSrc.begin<Vec3b>(); it != maskClusterSrc.end<Vec3b>(); ++it) {
-            (*it)[0] = ((*it)[0] == i) ? 1 : 0;
+      vector<Scalar> meanSrcForCluster, stdDevSrcForCluster;
+      meanSrcForCluster.reserve(K), stdDevSrcForCluster.reserve(K);
+      for (unsigned int i = 0; i < K; i++)
+      {
+        Mat oMaskClusterSrc(oSrcLabels.size(), CV_8UC1, Scalar(0)); // clone constructor.
+        MatIterator_<Vec3b> itMask, itLabels;
+        itMask = oMaskClusterSrc.begin<Vec3b>();
+        for (itLabels = oSrcLabels.begin<Vec3b>(); itLabels != oSrcLabels.end<Vec3b>(); ++itLabels)
+        {
+            if ((*itLabels)[0] == i) {
+              (*itMask)[0] = 1;
+            }
+            ++itMask;
         }
-        meanStdDev(oSrcLAB, clustersMeanSrc[i], clustersStdDevSrc[i], maskClusterSrc);
+        meanStdDev(oSrcLAB, meanSrcForCluster[i], stdDevSrcForCluster[i], oMaskClusterSrc);
+        printMeanAndStdDev(meanSrcForCluster[i], stdDevSrcForCluster[i], i, "Source");
       }
 
       // For the color: Compute the mean and standard deviation for eah cluster.
-      vector<Scalar> clustersMeanClr, clustersStdDevClr;
-      clustersMeanClr.reserve(K), clustersStdDevClr.reserve(K);
-      for (unsigned int i = 0; i < K; i++) {
-        Mat maskClusterClr = oClrLabels.clone(); // clone constructor.
-        MatIterator_<Vec3b> it, end;
-        for (it = maskClusterClr.begin<Vec3b>(); it != maskClusterClr.end<Vec3b>(); ++it) {
-            (*it)[0] = ((*it)[0] == i) ? 1 : 0;
+      vector<Scalar> meanClrForCluster, stdDevClrForCluster;
+      meanClrForCluster.reserve(K), stdDevClrForCluster.reserve(K);
+      for (unsigned int i = 0; i < K; i++)
+      {
+        Mat oMaskClusterClr(oClrLabels.size(), CV_8UC1, Scalar(0)); // clone constructor.
+        MatIterator_<Vec3b> itMask, itLabels;
+        itMask = oMaskClusterClr.begin<Vec3b>();
+        for (itLabels = oClrLabels.begin<Vec3b>(); itLabels != oClrLabels.end<Vec3b>(); ++itLabels)
+        {
+            if ((*itLabels)[0] ==  i) {
+              (*itMask)[0] = 1;
+            }
+            ++itMask;
         }
-        meanStdDev(oClrLAB, clustersMeanClr[i], clustersStdDevClr[i], maskClusterClr);
+        meanStdDev(oClrLAB, meanClrForCluster[i], stdDevClrForCluster[i], oMaskClusterClr);
+        printMeanAndStdDev(meanClrForCluster[i], stdDevClrForCluster[i], i, "Color");
       }
 
-      // Compute average and standard derivation for oSrc and oClr
-      Scalar meanSrc, stdDevSrc, meanClr, stdDevClr;
-      meanStdDev(oSrcLAB, meanSrc, stdDevSrc);
-      cout << "Source mean LAB: " << meanSrc[0] << " " << meanSrc[1] << " " << meanSrc[2] << endl;
-      cout << "Source stdDev LAB: " << stdDevSrc[0] << " " << stdDevSrc[1] << " " << stdDevSrc[2] << endl;
+      // Associate each src cluster with the closest clr cluster.
+      vector<Scalar> quotientSrcForCluster;
+      quotientSrcForCluster.reserve(K);
+      for (unsigned int i = 0; i < K; ++i)
+      {
+        quotientSrcForCluster[i][LAMBDA] = (stdDevClrForCluster[i][LAMBDA] / stdDevSrcForCluster[i][LAMBDA]);
+        quotientSrcForCluster[i][ALPHA] = (stdDevClrForCluster[i][ALPHA] / stdDevSrcForCluster[i][ALPHA]);
+        quotientSrcForCluster[i][BETHA] = (stdDevClrForCluster[i][BETHA] / stdDevSrcForCluster[i][BETHA]);
+      }
 
-      meanStdDev(oClrLAB, meanClr, stdDevClr);
-      cout << "Color mean LAB: " << meanClr[0] << " " << meanClr[1] << " " << meanClr[2] << endl;
-      cout << "Color stdDev LAB: " << stdDevClr[0] << " " << stdDevClr[1] << " " << stdDevClr[2] << endl;
+      // Do the modification.
+      MatIterator_<Vec3b> itLabels = oSrcLabels.begin<Vec3b>();
+      for (itlab = oSrcLAB.begin<Vec3d>(), endlab = oSrcLAB.end<Vec3d>(); itlab != endlab; ++itlab)
+      {
+        unsigned int iClusterId = (*itLabels)[0];
+        (*itlab)[LAMBDA] = quotientSrcForCluster[iClusterId][LAMBDA]*
+            ((*itlab)[LAMBDA] - meanSrcForCluster[iClusterId][LAMBDA]) + meanClrForCluster[iClusterId][LAMBDA];
+        (*itlab)[ALPHA] = quotientSrcForCluster[iClusterId][LAMBDA]*
+            ((*itlab)[ALPHA] - meanSrcForCluster[iClusterId][ALPHA]) + meanClrForCluster[iClusterId][ALPHA];
+        (*itlab)[BETHA] = quotientSrcForCluster[iClusterId][BETHA]*
+            ((*itlab)[BETHA] - meanSrcForCluster[iClusterId][BETHA]) + meanClrForCluster[iClusterId][BETHA];
+
+        ++itLabels;
+      }
+
+
+/*
 
       float x = (stdDevClr[0] / stdDevSrc[0]);
       float y = (stdDevClr[1] / stdDevSrc[1]);
@@ -216,22 +260,25 @@ void SwitchColor(Mat& oSrc, Mat& oClr, Mat& oDst)
         (*itlab)[1] = y*((*itlab)[1] - meanSrc[1]) + meanClr[1];
         (*itlab)[2] = z*((*itlab)[2] - meanSrc[2]) + meanClr[2];
       }
+*/
+
       // Reverse
       // LAB -> LMS -> oDst
       itDst = oDst.begin<Vec3b>();
       for (itlab = oSrcLAB.begin<Vec3d>(), endlab = oSrcLAB.end<Vec3d>(); itlab != endlab; ++itlab)
       {
-          float l = (*itlab)[0];
-          float a = (*itlab)[1];
-          float b = (*itlab)[2];
+          float l = (*itlab)[LAMBDA];
+          float a = (*itlab)[ALPHA];
+          float b = (*itlab)[BETHA];
           float L = exp( labToL(l, a, b) ) - 1;
           float M = exp( labToM(l, a, b) ) - 1;
           float S = exp( labToS(l, a, b) ) - 1;
-          (*itDst)[2] = (uchar)lmsToR(L, M, S);
-          (*itDst)[1] = (uchar)lmsToG(L, M, S);
-          (*itDst)[0] = (uchar)lmsToB(L, M, S);
+          (*itDst)[RED] = (uchar)lmsToR(L, M, S);
+          (*itDst)[GREEN] = (uchar)lmsToG(L, M, S);
+          (*itDst)[BLUE] = (uchar)lmsToB(L, M, S);
           ++itDst;
       }
+
     }
 };
 
@@ -250,6 +297,20 @@ int mykmean(Mat& img, Mat& _labels, const int k)
     _labels = _labels.reshape(0, img.rows);
 
     return k;
+};
+
+void printMeanAndStdDev(const Scalar & mean, const Scalar & stdDev, int i, string name)
+{
+    cout << "Cluster " << i << ":" << endl;
+    cout << name << " mean LAB: "
+        << mean[LAMBDA] << " "
+        << mean[ALPHA] << " "
+        << mean[BETHA] << endl;
+    cout << name << " stdDev LAB: "
+        << stdDev[LAMBDA] << " "
+        << stdDev[ALPHA] << " "
+        << stdDev[BETHA] << endl;
+
 };
 
 int displayLabels(const Mat & _labels, int k)

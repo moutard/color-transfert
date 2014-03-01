@@ -1,5 +1,6 @@
 #ifndef TRANSFERT_H
 #define TRANSFERT_H
+#include <string>
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/features2d/features2d.hpp"
@@ -38,5 +39,6 @@ void compare(cv::Mat& oSrc, cv::Mat& oDst);
 void test(cv::Mat& oSrc, cv::Mat& oDst);
 int mykmean(cv::Mat& img, cv::Mat& labels, const int k);
 int displayLabels(const cv::Mat & labels, int k);
+void printMeanAndStdDev(const cv::Scalar & mean, const cv::Scalar & stdDev, int i, std::string name);
 #endif
 

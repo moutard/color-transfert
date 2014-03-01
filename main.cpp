@@ -16,6 +16,7 @@ int main( void )
   /// Load the source image
   Mat src = imread( "leaves-orange.jpg", 1 );
   Mat dst = Mat::zeros(src.rows, src.cols, CV_8UC3);
+  //Mat clr = imread("leaves-green.jpg", 1);
   Mat clr = imread("leaves-green.jpg", 1);
 
   SwitchColor(src, clr, dst);
