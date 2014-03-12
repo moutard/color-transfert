@@ -134,8 +134,8 @@ void SwitchColor(Mat& oSrc, Mat& oClr, Mat& oDst)
     const int K = 3;
     mykmean(oSrc, oSrcLabels, K);
     mykmean(oClr, oClrLabels, K);
-    displayLabels(oSrcLabels, K);
-    displayLabels(oClrLabels, K);
+    //displayLabels(oSrcLabels, K);
+    //displayLabels(oClrLabels, K);
 
     const int channels = oSrc.channels();
     if (channels == 3)
@@ -237,30 +237,17 @@ void SwitchColor(Mat& oSrc, Mat& oClr, Mat& oDst)
       for (itlab = oSrcLAB.begin<Vec3d>(), endlab = oSrcLAB.end<Vec3d>(); itlab != endlab; ++itlab)
       {
         unsigned int iClusterId = (*itLabels)[0];
-        (*itlab)[LAMBDA] = quotientSrcForCluster[iClusterId][LAMBDA]*
-            ((*itlab)[LAMBDA] - meanSrcForCluster[iClusterId][LAMBDA]) + meanClrForCluster[iClusterId][LAMBDA];
-        (*itlab)[ALPHA] = quotientSrcForCluster[iClusterId][LAMBDA]*
-            ((*itlab)[ALPHA] - meanSrcForCluster[iClusterId][ALPHA]) + meanClrForCluster[iClusterId][ALPHA];
-        (*itlab)[BETHA] = quotientSrcForCluster[iClusterId][BETHA]*
-            ((*itlab)[BETHA] - meanSrcForCluster[iClusterId][BETHA]) + meanClrForCluster[iClusterId][BETHA];
-
+        (*itlab)[LAMBDA] = quotientSrcForCluster[iClusterId][LAMBDA] *
+            ((*itlab)[LAMBDA] - meanSrcForCluster[iClusterId][LAMBDA])
+            + meanClrForCluster[iClusterId][LAMBDA];
+        (*itlab)[ALPHA] = quotientSrcForCluster[iClusterId][LAMBDA] *
+            ((*itlab)[ALPHA] - meanSrcForCluster[iClusterId][ALPHA])
+            + meanClrForCluster[iClusterId][ALPHA];
+        (*itlab)[BETHA] = quotientSrcForCluster[iClusterId][BETHA] *
+            ((*itlab)[BETHA] - meanSrcForCluster[iClusterId][BETHA])
+            + meanClrForCluster[iClusterId][BETHA];
         ++itLabels;
       }
-
-
-/*
-
-      float x = (stdDevClr[0] / stdDevSrc[0]);
-      float y = (stdDevClr[1] / stdDevSrc[1]);
-      float z = (stdDevClr[2] / stdDevSrc[2]);
-
-      for (itlab = oSrcLAB.begin<Vec3d>(), endlab = oSrcLAB.end<Vec3d>(); itlab != endlab; ++itlab)
-      {
-        (*itlab)[0] = x*((*itlab)[0] - meanSrc[0]) + meanClr[0];
-        (*itlab)[1] = y*((*itlab)[1] - meanSrc[1]) + meanClr[1];
-        (*itlab)[2] = z*((*itlab)[2] - meanSrc[2]) + meanClr[2];
-      }
-*/
 
       // Reverse
       // LAB -> LMS -> oDst
