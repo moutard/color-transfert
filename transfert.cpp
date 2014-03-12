@@ -159,9 +159,9 @@ void SwitchColor(Mat& oSrc, Mat& oClr, Mat& oDst)
           uchar b = (*itSrc)[BLUE];
           uchar g = (*itSrc)[GREEN];
           uchar r = (*itSrc)[RED];
-          float L = log( 1 + rgbToL(r, g, b) );
-          float M = log( 1 + rgbToM(r, g, b) );
-          float S = log( 1 + rgbToS(r, g, b) );
+          float L = rgbToL(r, g, b);
+          float M = rgbToM(r, g, b);
+          float S = rgbToS(r, g, b);
           (*itlab)[LAMBDA] = lmsToLambda(L, M, S);
           (*itlab)[ALPHA] = lmsToAlpha( L, M, S);
           (*itlab)[BETHA] = lmsToBetha( L, M, S);
@@ -175,9 +175,9 @@ void SwitchColor(Mat& oSrc, Mat& oClr, Mat& oDst)
           uchar g = (*itClr)[GREEN];
           uchar r = (*itClr)[RED];
 
-          float L = log( 1 + rgbToL(r, g, b) );
-          float M = log( 1 + rgbToM(r, g, b) );
-          float S = log( 1 + rgbToS(r, g, b) );
+          float L = rgbToL(r, g, b);
+          float M = rgbToM(r, g, b);
+          float S = rgbToS(r, g, b);
           (*itClrlab)[LAMBDA] = lmsToLambda(L, M, S);
           (*itClrlab)[ALPHA] = lmsToAlpha( L, M, S);
           (*itClrlab)[BETHA] = lmsToBetha( L, M, S);
@@ -257,9 +257,9 @@ void SwitchColor(Mat& oSrc, Mat& oClr, Mat& oDst)
           float l = (*itlab)[LAMBDA];
           float a = (*itlab)[ALPHA];
           float b = (*itlab)[BETHA];
-          float L = exp( labToL(l, a, b) ) - 1;
-          float M = exp( labToM(l, a, b) ) - 1;
-          float S = exp( labToS(l, a, b) ) - 1;
+          float L = labToL(l, a, b);
+          float M = labToM(l, a, b);
+          float S = labToS(l, a, b);
           (*itDst)[RED] = (uchar)lmsToR(L, M, S);
           (*itDst)[GREEN] = (uchar)lmsToG(L, M, S);
           (*itDst)[BLUE] = (uchar)lmsToB(L, M, S);
