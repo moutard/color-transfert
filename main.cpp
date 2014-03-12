@@ -7,17 +7,17 @@
 using namespace std;
 using namespace cv;
 
-int main( void )
+int main(int argc, char * argv[])
 {
   /// Create a window that can display an image.
   char window_name[] = "Transfer";
   namedWindow( window_name, WINDOW_AUTOSIZE );
 
   /// Load the source image
-  Mat src = imread( "leaves-orange.jpg", 1 );
+  Mat src = imread(argv[1], 1 );
   Mat dst = Mat::zeros(src.rows, src.cols, CV_8UC3);
   //Mat clr = imread("leaves-green.jpg", 1);
-  Mat clr = imread("leaves-green.jpg", 1);
+  Mat clr = imread(argv[2], 1);
 
   SwitchColor(src, clr, dst);
   /// Display the source image in the window.
