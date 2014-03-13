@@ -40,5 +40,8 @@ void test(cv::Mat& oSrc, cv::Mat& oDst);
 int mykmean(cv::Mat& img, cv::Mat& labels, const int k);
 int displayLabels(const cv::Mat & labels, int k);
 void printMeanAndStdDev(const cv::Scalar & mean, const cv::Scalar & stdDev, int i, std::string name);
+
+void tests();
+void testMatrix(const uchar x, const uchar y, const uchar z);
 #endif
 
