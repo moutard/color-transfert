@@ -19,10 +19,10 @@ bool scalar_equal(const cv::Scalar &a, const cv::Scalar &b)
 bool scalar_has_coherent_value(const cv::Scalar &a, const cv::Scalar &b)
 {
     bool bResult = true;
-    float EPS = 0.5f;
-    bResult = bResult && (a[0] >= 0.0f && a[0] <= 255.0f) && (b[0] >= 0.0f && b[0] <= 255.0f);
-    bResult = bResult && (a[1] >= 0.0f && a[1] <= 255.0f) && (b[1] >= 0.0f && b[1] <= 255.0f);
-    bResult = bResult && (a[2] >= 0.0f && a[2] <= 255.0f) && (b[2] >= 0.0f && b[2] <= 255.0f);
+    float EPS = 2;
+    bResult = bResult && (a[0] >= 0 && a[0] <= 255) && (b[0] >= 0 && b[0] <= 255);
+    bResult = bResult && (a[1] >= 0 && a[1] <= 255) && (b[1] >= 0 && b[1] <= 255);
+    bResult = bResult && (a[2] >= 0 && a[2] <= 255) && (b[2] >= 0 && b[2] <= 255);
     bResult = bResult && (abs(a[0] - b[0]) < EPS);
     bResult = bResult && (abs(a[1] - b[1]) < EPS);
     bResult = bResult && (abs(a[2] - b[2]) < EPS);
@@ -67,12 +67,25 @@ Scalar inverseLMS(const Scalar & scalar) {
   return Scalar(r, g, b);
 }
 
+Scalar inverseLMSChar(const Scalar & scalar) {
+  uchar r, g, b;
+  float l,m,s;
+  r = scalar[0], g = scalar[1], b = scalar[2];
+  l = rgbToL(r, g, b);
+  m = rgbToM(r, g, b);
+  s = rgbToS(r, g, b);
+  r = (unsigned int)lmsToR(l, m, s);
+  g = (unsigned int)lmsToG(l, m, s);
+  b = (unsigned int)lmsToB(l, m, s);
+  return Scalar(r, g, b);
+}
+
 Scalar inverseTotal(const Scalar & scalar) {
   float l,m,s;
   float lambda, alpha, betha;
   float r, g, b;
   r = scalar[0], g = scalar[1], b = scalar[2];
-  uchar R, G, B;
+  unsigned int R, G, B;
   l = rgbToL(r, g, b);
   m = rgbToM(r, g, b);
   s = rgbToS(r, g, b);
@@ -89,12 +102,9 @@ Scalar inverseTotal(const Scalar & scalar) {
   g = lmsToG(l, m, s);
   b = lmsToB(l, m, s);
 
-  R = (uchar) r;
-  G = (uchar) g;
-  B = (uchar) b;
-  cout << (unsigned int)R << " " << (unsigned int)G << " " << (unsigned int)B;
-  cout << " || " <<  (unsigned int) scalar[0] << " " << (unsigned int) scalar[1] << " " << (unsigned int) scalar[2];
-  cout << " || " <<   r << " " << g << " " << b << endl;
+  R = (unsigned int) r;
+  G = (unsigned int) g;
+  B = (unsigned int) b;
   return Scalar(R, G, B);
 }
 
@@ -202,3 +212,110 @@ TEST(Inverse, LMSInverse_WHITE) {
   Scalar s0_ =  inverseLMS(s0);
   ASSERT_PRED2(scalar_lms_has_coherent_value, s0, s0_);
 }
+
+/**
+ * cast to uchar
+ */
+
+/**
+ * RGB -> LMS -> RGB
+ */
+TEST(Inverse, LMS_char_Inverse_BLACK) {
+  Scalar s0(0, 0, 0);
+  Scalar s0_ =  inverseLMSChar(s0);
+  ASSERT_PRED2(scalar_has_coherent_value, s0, s0_);
+}
+
+TEST(Inverse, LMS_char_Inverse_RED) {
+  Scalar s0(255, 0, 0);
+  Scalar s0_ =  inverseLMSChar(s0);
+  ASSERT_PRED2(scalar_has_coherent_value, s0, s0_);
+}
+
+TEST(Inverse, LMS_char_Inverse_GREEN) {
+  Scalar s0(0, 255, 0);
+  Scalar s0_ =  inverseLMSChar(s0);
+  ASSERT_PRED2(scalar_has_coherent_value, s0, s0_);
+}
+
+TEST(Inverse, LMS_char_Inverse_BLUE) {
+  Scalar s0(0, 0, 255);
+  Scalar s0_ =  inverseLMSChar(s0);
+  ASSERT_PRED2(scalar_has_coherent_value, s0, s0_);
+}
+
+TEST(Inverse, LMS_char_Inverse_CYAN) {
+  Scalar s0(0, 255, 255);
+  Scalar s0_ =  inverseLMSChar(s0);
+  ASSERT_PRED2(scalar_has_coherent_value, s0, s0_);
+}
+
+TEST(Inverse, LMS_char_Inverse_PURPLE) {
+  Scalar s0(255, 0, 255);
+  Scalar s0_ =  inverseLMSChar(s0);
+  ASSERT_PRED2(scalar_has_coherent_value, s0, s0_);
+}
+
+TEST(Inverse, LMS_char_Inverse_YELLOW) {
+  Scalar s0(255, 255, 0);
+  Scalar s0_ =  inverseLMSChar(s0);
+  ASSERT_PRED2(scalar_has_coherent_value, s0, s0_);
+}
+
+TEST(Inverse, LMS_char_Inverse_WHITE) {
+  Scalar s0(255, 255, 255);
+  Scalar s0_ =  inverseLMSChar(s0);
+  ASSERT_PRED2(scalar_has_coherent_value, s0, s0_);
+}
+
+/**
+ * Total inversion
+ */
+TEST(Inverse, TOTAL_Inverse_BLACK) {
+  Scalar s0(0, 0, 0);
+  Scalar s0_ =  inverseTotal(s0);
+  ASSERT_PRED2(scalar_has_coherent_value, s0, s0_);
+}
+
+TEST(Inverse, TOTAL_Inverse_RED) {
+  Scalar s0(255, 0, 0);
+  Scalar s0_ =  inverseTotal(s0);
+  ASSERT_PRED2(scalar_has_coherent_value, s0, s0_);
+}
+
+TEST(Inverse, TOTAL_Inverse_GREEN) {
+  Scalar s0(0, 255, 0);
+  Scalar s0_ =  inverseTotal(s0);
+  ASSERT_PRED2(scalar_has_coherent_value, s0, s0_);
+}
+
+TEST(Inverse, TOTAL_Inverse_BLUE) {
+  Scalar s0(0, 0, 255);
+  Scalar s0_ =  inverseTotal(s0);
+  ASSERT_PRED2(scalar_has_coherent_value, s0, s0_);
+}
+
+TEST(Inverse, TOTAL_Inverse_CYAN) {
+  Scalar s0(0, 255, 255);
+  Scalar s0_ =  inverseTotal(s0);
+  ASSERT_PRED2(scalar_has_coherent_value, s0, s0_);
+}
+
+TEST(Inverse, TOTAL_Inverse_PURPLE) {
+  Scalar s0(255, 0, 255);
+  Scalar s0_ =  inverseTotal(s0);
+  ASSERT_PRED2(scalar_has_coherent_value, s0, s0_);
+}
+
+TEST(Inverse, TOTAL_Inverse_YELLOW) {
+  Scalar s0(255, 255, 0);
+  Scalar s0_ =  inverseTotal(s0);
+  ASSERT_PRED2(scalar_has_coherent_value, s0, s0_);
+}
+
+TEST(Inverse, TOTAL_Inverse_WHITE) {
+  Scalar s0(255, 255, 255);
+  Scalar s0_ =  inverseTotal(s0);
+  ASSERT_PRED2(scalar_has_coherent_value, s0, s0_);
+}
+

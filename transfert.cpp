@@ -107,9 +107,13 @@ inline float lmsToG(const float l, const float m, const float s)
 inline float lmsToB(const float l, const float m, const float s)
 {
   float a31 = 0.0497f;
-  float a32 = 0.2439f;
+  float a32 = 0.2511f;
   float a33 = 1.2045f;
   return ((a31 * l) - (a32 * m) + (a33 * s));
+}
+
+inline uchar scaleForRGB (const float f) {
+  return (uchar)min(max(f, 0.0f), 255.0f);
 }
 
 /**
@@ -122,7 +126,7 @@ void SwitchColor(Mat& oSrc, Mat& oClr, Mat& oDst)
     // accept only char type matrices
     CV_Assert(oSrc.depth() != sizeof(uchar));
     Mat oSrcLabels, oClrLabels;
-    const unsigned int K = 3;
+    const unsigned int K = 2;
     mykmean(oSrc, oSrcLabels, K);
     mykmean(oClr, oClrLabels, K);
     //displayLabels(oSrcLabels, K);
@@ -251,9 +255,9 @@ void SwitchColor(Mat& oSrc, Mat& oClr, Mat& oDst)
           float L = labToL(l, a, b);
           float M = labToM(l, a, b);
           float S = labToS(l, a, b);
-          (*itDst)[RED] = (uchar)lmsToR(L, M, S);
-          (*itDst)[GREEN] = (uchar)lmsToG(L, M, S);
-          (*itDst)[BLUE] = (uchar)lmsToB(L, M, S);
+          (*itDst)[RED] = scaleForRGB(lmsToR(L, M, S));
+          (*itDst)[GREEN] = scaleForRGB(lmsToG(L, M, S));
+          (*itDst)[BLUE] = scaleForRGB(lmsToB(L, M, S));
           ++itDst;
       }
 
