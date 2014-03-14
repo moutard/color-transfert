@@ -126,7 +126,7 @@ void SwitchColor(Mat& oSrc, Mat& oClr, Mat& oDst)
     // accept only char type matrices
     CV_Assert(oSrc.depth() != sizeof(uchar));
     Mat oSrcLabels, oClrLabels;
-    const unsigned int K = 2;
+    const unsigned int K = 1;
     mykmean(oSrc, oSrcLabels, K);
     mykmean(oClr, oClrLabels, K);
     //displayLabels(oSrcLabels, K);
@@ -266,17 +266,21 @@ void SwitchColor(Mat& oSrc, Mat& oClr, Mat& oDst)
 
 int mykmean(Mat& img, Mat& _labels, const int k)
 {
-    std::vector<cv::Mat> imgRGB;
-    cv::split(img, imgRGB);
-    int n = img.rows * img.cols;
-    cv::Mat img3xN(n, 3, CV_8U);
-    for (int i = 0; i != 3; ++i)
-    {
-      imgRGB[i].reshape(1, n).copyTo(img3xN.col(i));
+    if (k <= 1) {
+      _labels = Mat::zeros(img.rows, img.cols, CV_8UC1);
+    } else {
+      std::vector<cv::Mat> imgRGB;
+      cv::split(img, imgRGB);
+      int n = img.rows * img.cols;
+      cv::Mat img3xN(n, 3, CV_8U);
+      for (int i = 0; i != 3; ++i)
+      {
+        imgRGB[i].reshape(1, n).copyTo(img3xN.col(i));
+      }
+      img3xN.convertTo(img3xN, CV_32F);
+      cv::kmeans(img3xN, k, _labels, cv::TermCriteria(), 10, cv::KMEANS_RANDOM_CENTERS);
+      _labels = _labels.reshape(0, img.rows);
     }
-    img3xN.convertTo(img3xN, CV_32F);
-    cv::kmeans(img3xN, k, _labels, cv::TermCriteria(), 10, cv::KMEANS_RANDOM_CENTERS);
-    _labels = _labels.reshape(0, img.rows);
 
     return k;
 }
