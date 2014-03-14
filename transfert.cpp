@@ -15,6 +15,9 @@
 using namespace std;
 using namespace cv;
 
+const float INV_SQRT2 = 0.70711f;
+const float INV_SQRT3 = 0.57735f;
+const float INV_SQRT6 = 0.40825f;
 // Constant that reprents id of channels, easyer to read in my opinion.
 // Note that RGB is stored in the opposite order.
 // I could use an enum?
@@ -34,40 +37,37 @@ inline float rgbToL(const uchar red, const uchar green, const uchar blue)
   float a12 = 0.5783f;
   float a13 = 0.0402f;
   return ((a11 * red) + (a12 * green) + (a13 * blue));
-};
+}
 inline float rgbToM(const uchar red, const uchar green, const uchar blue)
 {
   float a21 = 0.1967f;
   float a22 = 0.7244f;
   float a23 = 0.0782f;
   return ((a21 * red) + (a22 * green) + (a23 * blue));
-};
+}
 inline float rgbToS(const uchar red, const uchar green, const uchar blue)
 {
   float a31 = 0.0241f;
   float a32 = 0.1288f;
   float a33 = 0.8444f;
   return ((a31 * red) + (a32 * green) + (a33 * blue));
-};
+}
 
 /**
  * LMS -> lambdaAlphaBetha
  */
 inline float lmsToLambda(const float l, const float m, const float s)
 {
-  float coeff = 0.5773f; // 1/sqrt(3)
-  return coeff * (l + m + s);
-};
+  return INV_SQRT3 * (l + m + s);
+}
 inline float lmsToAlpha(const float l, const float m, const float s)
 {
-  float coeff = 0.4082; // 1/sqrt(6)
-  return coeff * (l + m - 2*s);
-};
+  return INV_SQRT6 * (l + m - 2*s);
+}
 inline float lmsToBetha(const float l, const float m, const float s)
 {
-  float coeff = 0.7071; // 1/sqrt(2)
-  return coeff * (l - m);
-};
+  return INV_SQRT2 * (l - m);
+}
 
 /**
  * Reverse
@@ -76,25 +76,16 @@ inline float lmsToBetha(const float l, const float m, const float s)
  */
 inline float labToL(const float l, const float a, const float b)
 {
-  float coeff1 = 0.5773f; // sqrt(3)/3
-  float coeff2 = 0.4082f; // sqrt(6)/6
-  float coeff3 = 0.7071f; // sqrt(2)/2
-  return (coeff1*l + coeff2*a + coeff3*b);
-};
+  return (INV_SQRT3 * l + INV_SQRT6 * a + INV_SQRT2 * b);
+}
 inline float labToM(const float l, const float a, const float b)
 {
-  float coeff1 = 0.5773f; // sqrt(3)/3
-  float coeff2 = 0.4082f; // sqrt(6)/6
-  float coeff3 = 0.7071f; // sqrt(2)/2
-  return (coeff1*l + coeff2*a - coeff3*b);
-};
+  return (INV_SQRT3 * l + INV_SQRT6 * a - INV_SQRT2 * b);
+}
 inline float labToS(const float l, const float a, const float b)
 {
-  float coeff1 = 0.5773f; // sqrt(3)/3
-  float coeff2 = 0.4082f; // sqrt(6)/6
-  float coeff3 = 0.7071f; // sqrt(2)/2
-  return (coeff1*l -  2*coeff2*a);
-};
+  return (INV_SQRT3 * l - 2 * INV_SQRT6 * a);
+}
 
 /**
  * LMS -> RGB
@@ -105,21 +96,21 @@ inline float lmsToR(const float l, const float m, const float s)
   float a12 = 3.5873f;
   float a13 = 0.1193f;
   return ((a11 * l) - (a12 * m) + (a13 * s));
-};
+}
 inline float lmsToG(const float l, const float m, const float s)
 {
   float a21 = -1.2186f;
   float a22 = 2.3809f;
   float a23 = 0.1624f;
   return ((a21 * l) + (a22 * m) - (a23 * s));
-};
+}
 inline float lmsToB(const float l, const float m, const float s)
 {
   float a31 = 0.0497f;
   float a32 = 0.2439f;
   float a33 = 1.2045f;
   return ((a31 * l) - (a32 * m) + (a33 * s));
-};
+}
 
 /**
  * oSrc : image you want to change.
@@ -131,7 +122,7 @@ void SwitchColor(Mat& oSrc, Mat& oClr, Mat& oDst)
     // accept only char type matrices
     CV_Assert(oSrc.depth() != sizeof(uchar));
     Mat oSrcLabels, oClrLabels;
-    const int K = 3;
+    const unsigned int K = 3;
     mykmean(oSrc, oSrcLabels, K);
     mykmean(oClr, oClrLabels, K);
     //displayLabels(oSrcLabels, K);
@@ -267,7 +258,7 @@ void SwitchColor(Mat& oSrc, Mat& oClr, Mat& oDst)
       }
 
     }
-};
+}
 
 int mykmean(Mat& img, Mat& _labels, const int k)
 {
@@ -284,7 +275,7 @@ int mykmean(Mat& img, Mat& _labels, const int k)
     _labels = _labels.reshape(0, img.rows);
 
     return k;
-};
+}
 
 void printMeanAndStdDev(const Scalar & mean, const Scalar & stdDev, int i, string name)
 {
@@ -298,12 +289,12 @@ void printMeanAndStdDev(const Scalar & mean, const Scalar & stdDev, int i, strin
         << stdDev[ALPHA] << " "
         << stdDev[BETHA] << endl;
 
-};
+}
 
-int displayLabels(const Mat & _labels, int k)
+void displayLabels(const Mat & _labels, int k)
 {
   Mat imgLabels;
   cv::convertScaleAbs(_labels, imgLabels, int(255/k));
   cv::imshow("result", imgLabels);
   waitKey(0);
-};
+}

@@ -38,7 +38,7 @@ void SwitchColor(cv::Mat& oSrc, cv::Mat& oClr, cv::Mat& oDst);
 void compare(cv::Mat& oSrc, cv::Mat& oDst);
 void test(cv::Mat& oSrc, cv::Mat& oDst);
 int mykmean(cv::Mat& img, cv::Mat& labels, const int k);
-int displayLabels(const cv::Mat & labels, int k);
+void displayLabels(const cv::Mat & labels, int k);
 void printMeanAndStdDev(const cv::Scalar & mean, const cv::Scalar & stdDev, int i, std::string name);
 
 void tests();
