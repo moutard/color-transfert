@@ -272,19 +272,15 @@ int mykmean(Mat& img, Mat& _labels, const int k)
       std::vector<cv::Mat> lImg_RGB_channels;
       cv::split(img, lImg_RGB_channels);
       int n = img.rows * img.cols;
-      cv::Mat img3xN(n, 3, CV_8U);
-      cv::Mat img5xN(n, 5, CV_8U);
+      cv::Mat img5xN(n, 1, CV_32FC3);
       for (int iRow = 0; iRow < img.rows; iRow++) {
         for (int iCol = 0; iCol < img.cols; iCol++) {
           for (int iChannel = 0; iChannel != 3; ++iChannel) {
-            img5xN.at<Vec3b>(iRow*img.cols + iCol, iChannel) = img.at<Vec3b>(iRow, iCol)[iChannel];
+            img5xN.at<Vec3f>(iRow*img.cols + iCol, 0)[iChannel] = (float)img.at<Vec3b>(iRow, iCol)[iChannel];
           }
-          img5xN.at<Vec3b>(iRow*img.cols + iCol, 3) = iRow;
-          img5xN.at<Vec3b>(iRow*img.cols + iCol, 4) = iCol;
         }
       }
-      img5xN.convertTo(img5xN, CV_32F);
-      cv::kmeans(img5xN, k, _labels, cv::TermCriteria(), 10, cv::KMEANS_RANDOM_CENTERS);
+      cv::kmeans(img5xN, k, _labels, cv::TermCriteria(), 3, cv::KMEANS_RANDOM_CENTERS);
       _labels = _labels.reshape(0, img.rows);
     }
 
