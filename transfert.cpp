@@ -126,11 +126,11 @@ void SwitchColor(Mat& oSrc, Mat& oClr, Mat& oDst)
     // accept only char type matrices
     CV_Assert(oSrc.depth() != sizeof(uchar));
     Mat oSrcLabels, oClrLabels;
-    const unsigned int K = 1;
+    const unsigned int K = 3;
     mykmean(oSrc, oSrcLabels, K);
     mykmean(oClr, oClrLabels, K);
-    //displayLabels(oSrcLabels, K);
-    //displayLabels(oClrLabels, K);
+    displayLabels(oSrcLabels, K);
+    displayLabels(oClrLabels, K);
 
     const int channels = oSrc.channels();
     if (channels == 3)
@@ -269,16 +269,22 @@ int mykmean(Mat& img, Mat& _labels, const int k)
     if (k <= 1) {
       _labels = Mat::zeros(img.rows, img.cols, CV_8UC1);
     } else {
-      std::vector<cv::Mat> imgRGB;
-      cv::split(img, imgRGB);
+      std::vector<cv::Mat> lImg_RGB_channels;
+      cv::split(img, lImg_RGB_channels);
       int n = img.rows * img.cols;
       cv::Mat img3xN(n, 3, CV_8U);
-      for (int i = 0; i != 3; ++i)
-      {
-        imgRGB[i].reshape(1, n).copyTo(img3xN.col(i));
+      cv::Mat img5xN(n, 5, CV_8U);
+      for (int iRow = 0; iRow < img.rows; iRow++) {
+        for (int iCol = 0; iCol < img.cols; iCol++) {
+          for (int iChannel = 0; iChannel != 3; ++iChannel) {
+            img5xN.at<Vec3b>(iRow*img.cols + iCol, iChannel) = img.at<Vec3b>(iRow, iCol)[iChannel];
+          }
+          img5xN.at<Vec3b>(iRow*img.cols + iCol, 3) = iRow;
+          img5xN.at<Vec3b>(iRow*img.cols + iCol, 4) = iCol;
+        }
       }
-      img3xN.convertTo(img3xN, CV_32F);
-      cv::kmeans(img3xN, k, _labels, cv::TermCriteria(), 10, cv::KMEANS_RANDOM_CENTERS);
+      img5xN.convertTo(img5xN, CV_32F);
+      cv::kmeans(img5xN, k, _labels, cv::TermCriteria(), 10, cv::KMEANS_RANDOM_CENTERS);
       _labels = _labels.reshape(0, img.rows);
     }
 
