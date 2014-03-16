@@ -27,4 +27,4 @@ add_executable(
 target_link_libraries(tests ${OpenCV_LIBS})
 
 # Preserve the old value if an exterior file already provide some.
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -Wextra")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -Wextra -g")
