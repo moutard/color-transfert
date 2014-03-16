@@ -272,12 +272,15 @@ int mykmean(Mat& img, Mat& _labels, const int k)
       std::vector<cv::Mat> lImg_RGB_channels;
       cv::split(img, lImg_RGB_channels);
       int n = img.rows * img.cols;
-      cv::Mat img5xN(n, 1, CV_32FC3);
+      // kmeans opencv algorithm need an mat of float.
+      cv::Mat img5xN(n, 5, CV_32F);
       for (int iRow = 0; iRow < img.rows; iRow++) {
         for (int iCol = 0; iCol < img.cols; iCol++) {
           for (int iChannel = 0; iChannel != 3; ++iChannel) {
-            img5xN.at<Vec3f>(iRow*img.cols + iCol, 0)[iChannel] = (float)img.at<Vec3b>(iRow, iCol)[iChannel];
+            img5xN.at<Vec3f>(iRow*img.cols + iCol, iChannel)[0] = (float)img.at<Vec3b>(iRow, iCol)[iChannel];
           }
+            img5xN.at<Vec3f>(iRow*img.cols + iCol, 3)[0] = (float) 0.2f * iRow;
+            img5xN.at<Vec3f>(iRow*img.cols + iCol, 4)[0] = (float) 0.2f * iCol;
         }
       }
       cv::kmeans(img5xN, k, _labels, cv::TermCriteria(), 3, cv::KMEANS_RANDOM_CENTERS);
@@ -306,5 +309,6 @@ void displayLabels(const Mat & _labels, int k)
   Mat imgLabels;
   cv::convertScaleAbs(_labels, imgLabels, int(255/k));
   cv::imshow("result", imgLabels);
+  imwrite("labels.jpg", imgLabels);
   waitKey(0);
 }
