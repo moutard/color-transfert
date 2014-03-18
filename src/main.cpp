@@ -3,9 +3,10 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/features2d/features2d.hpp"
-
+#include <boost/program_options.hpp>
 using namespace std;
 using namespace cv;
+namespace po = boost::program_options;
 
 int main(int argc, char * argv[])
 {
