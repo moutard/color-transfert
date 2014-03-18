@@ -116,6 +116,20 @@ inline uchar scaleForRGB (const float f) {
   return (uchar)min(max(f, 0.0f), 255.0f);
 }
 
+bool _parametersVerification (Mat&  oSrc, Mat& oClr) {
+  // Accept only 3 channels image.
+  if (oSrc.channels() != 3 && oClr.channels() != 3) {
+    cout << "ERROR - wrong number of channels:" << endl;
+    cout << "source and colored image should be 3 channels image but," << endl;
+    cout << "source image has " << oSrc.channels() << " channels." << endl;
+    cout << "color image has " << oClr.channels() << " channels." << endl;
+    return false;
+  }
+  // Accept only char type matrices.
+  CV_Assert(oSrc.depth() != sizeof(uchar));
+  return true;
+}
+
 /**
  * oSrc : image you want to change.
  * oClr: image used to extract color.
@@ -123,18 +137,14 @@ inline uchar scaleForRGB (const float f) {
  */
 void SwitchColor(Mat& oSrc, Mat& oClr, Mat& oDst)
 {
-    // accept only char type matrices
-    CV_Assert(oSrc.depth() != sizeof(uchar));
     Mat oSrcLabels, oClrLabels;
-    const unsigned int K = 3;
-    mykmean(oSrc, oSrcLabels, K);
-    mykmean(oClr, oClrLabels, K);
-    displayLabels(oSrcLabels, K);
-    displayLabels(oClrLabels, K);
 
-    const int channels = oSrc.channels();
-    if (channels == 3)
+    if (_parametersVerification(oSrc, oClr))
     {
+      const unsigned int K = 1;
+      mykmean(oSrc, oSrcLabels, K);
+      mykmean(oClr, oClrLabels, K);
+
       // Create a LAB matrix.
       Mat oSrcLAB = Mat::zeros(oSrc.rows, oSrc.cols, CV_64FC3);
       Mat oClrLAB = Mat::zeros(oClr.rows, oClr.cols, CV_64FC3);
@@ -260,7 +270,6 @@ void SwitchColor(Mat& oSrc, Mat& oClr, Mat& oDst)
           (*itDst)[BLUE] = scaleForRGB(lmsToB(L, M, S));
           ++itDst;
       }
-
     }
 }
 
