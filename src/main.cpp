@@ -13,14 +13,14 @@ int main(int argc, char * argv[])
 {
 
   // Declare the supported options.
-  po::options_description desc("Allowed options");
+  po::options_description desc("Transfert Color program takes an input image and apply to it the color of the other image.\n Save the result into the output image. Do not modify the input and color image. \n Allowed options");
   string output;
   int kmeans;
   desc.add_options()
     ("help,h", "produce help message")
     ("input,i", po::value<string>(), "path to the input image")
     ("color,c", po::value<string>(), "path to the color image")
-    ("output,o", po::value<string>(&output)->default_value("colored.png"), "path to the output image");
+    ("output,o", po::value<string>(&output)->default_value("colored.png"), "path to the output image")
     ("kmeans,k", po::value<int>(&kmeans)->default_value(0), "use kmeans cluster before recoloration [!BETHA can produce some unexpected results]");
 
   po::variables_map oVMap;
@@ -33,12 +33,12 @@ int main(int argc, char * argv[])
   }
 
   if (!oVMap.count("input")) {
-     cout << "Input image is mandatory." << endl;
+     cout << "ERROR - Input image is mandatory." << endl;
      cout << desc << endl;
     return 1;
   }
   if (!oVMap.count("color")) {
-     cout << "Color image is mandatory." << endl;
+     cout << "ERROR - Color image is mandatory." << endl;
      cout << desc << endl;
     return 1;
   }
