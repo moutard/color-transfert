@@ -28,7 +28,7 @@ int main(int argc, char * argv[])
   po::notify(oVMap);
 
   if (oVMap.count("help")) {
-    cout << desc << endl;
+    cout << desc << endl;src/main.cpp
     return 1;
   }
 
@@ -55,13 +55,13 @@ int main(int argc, char * argv[])
   Mat dst = Mat::zeros(src.rows, src.cols, CV_8UC3);
 
   if (src.data == NULL) {
-    cout << "The source image can not be found. Invalid path: " << argv[1] << endl;
+    cout << "The source image can not be found. Invalid path: " << oVMap["input"].as<string>() << endl;
     return 1;
   }
   //Mat clr = imread("leaves-green.jpg", 1);
   Mat clr = imread(oVMap["color"].as<string>() , 1);
   if (clr.data == NULL) {
-    cout << "The color image can not be found. Invalid path: " << argv[2] << endl;
+    cout << "The color image can not be found. Invalid path: " << oVMap["color"].as<string>() << endl;
     return 1;
   }
 
