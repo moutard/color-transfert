@@ -28,7 +28,7 @@ int main(int argc, char * argv[])
   po::notify(oVMap);
 
   if (oVMap.count("help")) {
-    cout << desc << endl;src/main.cpp
+    cout << desc << endl;
     return 1;
   }
 
