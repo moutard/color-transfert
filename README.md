@@ -15,6 +15,8 @@ Transfert the colors of the `color image` to the `input image`.
 Examples
 ---------
 
+![Image](results/color-transfert.jpg?raw=true)
+
 **ColorTransfert** is really easy to use but
 
 > **Warning:**
@@ -38,12 +40,15 @@ Installation
 
 #### Compilation
 The compilation process use [CMake](http://www.cmake.org/). Checkout the code, create a specific folder for your build and use cmake for the compilation. If you don't have cmake, take a look at the [documentation](http:.//opencv.org/quickstart.html).
-> git clone http://... color_transfert
-> cd color_transfer
-> mkdir build
-> cd build
-> cmake ../
-> make
+
+```
+git clone http://... color_transfert
+cd color_transfer
+mkdir build
+cd build
+cmake ../
+make
+```
 
 Usage
 ---------
@@ -53,8 +58,8 @@ Usage
 ```
 
 
-#### <i class="icon-file"></i> Credits
-> [StackEdit](https://stackedit.io/): mardown editor
-> [CMake](http://www.cmake.org/): cross-platform open source build system.
-> [OpenCV](http://www.opencv.org/): open source computer vision platform.
-> [Boost](http://www.boost.org/): c++ libraries under the Boost Software License
+#### <i class="icon-file"></i> CreditsREADME.md
+> - [StackEdit](https://stackedit.io/): mardown editor
+> - [CMake](http://www.cmake.org/): cross-platform open source build system.
+> - [OpenCV](http://www.opencv.org/): open source computer vision platform.
+> - [Boost](http://www.boost.org/): c++ libraries under the Boost Software License
