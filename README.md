@@ -47,10 +47,10 @@ The compilation process use [CMake](http://www.cmake.org/). Checkout the code, c
 
 Usage
 ---------
-
-> ./transfert -i path/input/image -c path/color/image -o path/output/image
-> ./transfert -h
-
+```
+./transfert -i path/input/image -c path/color/image -o path/output/image
+./transfert -h
+```
 
 
 #### <i class="icon-file"></i> Credits
