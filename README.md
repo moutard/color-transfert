@@ -15,7 +15,7 @@ Transfert the colors of the `color image` to the `input image`.
 Examples
 ---------
 
-![Image](results/color-transfert.jpg?raw=true)
+![Image](https://raw.github.com/moutard/learn/master/cpp/color_transfer/results/color_transfert.jpg?raw=true)
 
 **ColorTransfert** is really easy to use but
 
