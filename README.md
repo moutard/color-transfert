@@ -15,8 +15,8 @@ Transfert the colors of the `color image` to the `input image`.
 Examples
 ---------
 
-![Image](https://raw.github.com/moutard/results/color_transfert.jpg?raw=true)
-
+![Image](
+https://raw.githubusercontent.com/moutard/color-transfert/master/results/color_transfert.jpg)
 **ColorTransfert** is really easy to use but
 
 > **Warning:**
