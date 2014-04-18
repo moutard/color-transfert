@@ -31,21 +31,21 @@ enum channelsLAB {
 /**
  * RGB -> LMS
  */
-inline float rgbToL(const uchar red, const uchar green, const uchar blue)
+inline float rgbToL(uchar red, uchar green, uchar blue)
 {
   float a11 = 0.3811f;
   float a12 = 0.5783f;
   float a13 = 0.0402f;
   return ((a11 * red) + (a12 * green) + (a13 * blue));
 }
-inline float rgbToM(const uchar red, const uchar green, const uchar blue)
+inline float rgbToM(uchar red, uchar green, uchar blue)
 {
   float a21 = 0.1967f;
   float a22 = 0.7244f;
   float a23 = 0.0782f;
   return ((a21 * red) + (a22 * green) + (a23 * blue));
 }
-inline float rgbToS(const uchar red, const uchar green, const uchar blue)
+inline float rgbToS(uchar red, uchar green, uchar blue)
 {
   float a31 = 0.0241f;
   float a32 = 0.1288f;
@@ -56,15 +56,15 @@ inline float rgbToS(const uchar red, const uchar green, const uchar blue)
 /**
  * LMS -> lambdaAlphaBetha
  */
-inline float lmsToLambda(const float l, const float m, const float s)
+inline float lmsToLambda(float l, float m, float s)
 {
   return INV_SQRT3 * (l + m + s);
 }
-inline float lmsToAlpha(const float l, const float m, const float s)
+inline float lmsToAlpha(float l, float m, float s)
 {
   return INV_SQRT6 * (l + m - 2*s);
 }
-inline float lmsToBetha(const float l, const float m, const float s)
+inline float lmsToBetha(float l, float m, float s)
 {
   return INV_SQRT2 * (l - m);
 }
@@ -74,15 +74,15 @@ inline float lmsToBetha(const float l, const float m, const float s)
  *
  * lambdaAlphaBetha -> LMS
  */
-inline float labToL(const float l, const float a, const float b)
+inline float labToL(float l, float a, float b)
 {
   return (INV_SQRT3 * l + INV_SQRT6 * a + INV_SQRT2 * b);
 }
-inline float labToM(const float l, const float a, const float b)
+inline float labToM(float l, float a, float b)
 {
   return (INV_SQRT3 * l + INV_SQRT6 * a - INV_SQRT2 * b);
 }
-inline float labToS(const float l, const float a, const float b)
+inline float labToS(float l, float a, float b)
 {
   return (INV_SQRT3 * l - 2 * INV_SQRT6 * a);
 }
@@ -90,21 +90,21 @@ inline float labToS(const float l, const float a, const float b)
 /**
  * LMS -> RGB
  */
-inline float lmsToR(const float l, const float m, const float s)
+inline float lmsToR(float l, float m, float s)
 {
   float a11 = 4.4679f;
   float a12 = 3.5873f;
   float a13 = 0.1193f;
   return ((a11 * l) - (a12 * m) + (a13 * s));
 }
-inline float lmsToG(const float l, const float m, const float s)
+inline float lmsToG(float l, float m, float s)
 {
   float a21 = -1.2186f;
   float a22 = 2.3809f;
   float a23 = 0.1624f;
   return ((a21 * l) + (a22 * m) - (a23 * s));
 }
-inline float lmsToB(const float l, const float m, const float s)
+inline float lmsToB(float l, float m, float s)
 {
   float a31 = 0.0497f;
   float a32 = 0.2511f;
@@ -112,11 +112,11 @@ inline float lmsToB(const float l, const float m, const float s)
   return ((a31 * l) - (a32 * m) + (a33 * s));
 }
 
-inline uchar scaleForRGB (const float f) {
+inline uchar scaleForRGB (float f) {
   return (uchar)min(max(f, 0.0f), 255.0f);
 }
 
-bool _parametersVerification (Mat&  oSrc, Mat& oClr) {
+bool _parametersVerification (const Mat&  oSrc, const Mat& oClr) {
   // Accept only 3 channels image.
   if (oSrc.channels() != 3 && oClr.channels() != 3) {
     cout << "ERROR - wrong number of channels:" << endl;
